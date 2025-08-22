@@ -18,17 +18,16 @@ double lagrangeInterpolationAtZero(vector<pair<double,double>> points) {
         }
         result += term;
     }
-
     return result;
 }
 
 int main() {
-    // Open JSON file
     ifstream fin("testcase1.json");
     if (!fin) {
         cerr << "Could not open testcase1.json" << endl;
         return 1;
     }
+
     json j;
     fin >> j;
     fin.close();
@@ -36,16 +35,25 @@ int main() {
     int n = j["keys"]["n"];
     int k = j["keys"]["k"];
     vector<pair<double,double>> points;
+
     for (auto& el : j.items()) {
         if (el.key() == "keys") continue;
         int x = stoi(el.key());
-        int base = stoi(el.value()["base"].get<string>());
+
+        // Safe way to read base
+        int base = el.value()["base"].is_string() 
+                   ? stoi(el.value()["base"].get<string>()) 
+                   : el.value()["base"].get<int>();
+
         string value = el.value()["value"].get<string>();
         long long y = stoll(value, nullptr, base);
+
         points.emplace_back(x, y);
     }
+
     // Sort by x
     sort(points.begin(), points.end());
+
     // Use only the first k points
     if ((int)points.size() > k)
         points.resize(k);
@@ -53,6 +61,5 @@ int main() {
     double c = lagrangeInterpolationAtZero(points);
 
     cout << "The constant term c = " << c << endl;
-
     return 0;
 }
